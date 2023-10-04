@@ -110,4 +110,5 @@ function App() {
     );
 }
 
+//vankata oprai neshtata
 export default App;
