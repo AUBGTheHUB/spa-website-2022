@@ -29,7 +29,7 @@ async def test_create_participant_and_team_in_transaction_success(
         Participant(
             name=mock_input_data.name,
             email=mock_input_data.email,
-            is_admin=True,
+            is_admin=False,
             team_id=team_repo_mock.create.return_value.ok_value.id,
         )
     )
