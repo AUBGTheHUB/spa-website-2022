@@ -41,9 +41,7 @@ async def test_create_team_duplicate_name_error(
     db_manager_mock: Mock, mock_input_data: ParticipantRequestBody, repo: TeamsRepository
 ) -> None:
     # Simulate a DuplicateKeyError raised by insert_one to represent a duplicate team name
-    db_manager_mock.get_collection.return_value.insert_one = AsyncMock(
-        side_effect=DuplicateKeyError("Duplicate team name error")
-    )
+    db_manager_mock.retry_db_operation = AsyncMock(side_effect=DuplicateKeyError("Duplicate team name error"))
 
     result = await repo.create(mock_input_data)
 
@@ -58,7 +56,7 @@ async def test_create_team_general_exception(
     db_manager_mock: Mock, mock_input_data: ParticipantRequestBody, repo: TeamsRepository
 ) -> None:
     # Simulate a general exception raised by insert_one
-    db_manager_mock.get_collection.return_value.insert_one = AsyncMock(side_effect=Exception("Test error"))
+    db_manager_mock.retry_db_operation = AsyncMock(side_effect=Exception("Test error"))
 
     result = await repo.create(mock_input_data)
 

@@ -44,9 +44,7 @@ async def test_create_participant_duplicate_email_error(
     db_manager_mock: Mock, mock_input_data: ParticipantRequestBody, repo: ParticipantsRepository
 ) -> None:
     # Simulate a DuplicateKeyError raised by insert_one to represent a duplicate email
-    db_manager_mock.get_collection.return_value.insert_one = AsyncMock(
-        side_effect=DuplicateKeyError("Duplicate email error")
-    )
+    db_manager_mock.retry_db_operation = AsyncMock(side_effect=DuplicateKeyError("Duplicate email error"))
 
     result = await repo.create(mock_input_data)
 
@@ -61,7 +59,7 @@ async def test_create_participant_general_exception(
     db_manager_mock: Mock, mock_input_data: ParticipantRequestBody, repo: ParticipantsRepository
 ) -> None:
     # Simulate a general exception raised by insert_one
-    db_manager_mock.get_collection.return_value.insert_one = AsyncMock(side_effect=Exception("Test error"))
+    db_manager_mock.retry_db_operation = AsyncMock(side_effect=Exception("Test error"))
 
     result = await repo.create(mock_input_data)
 

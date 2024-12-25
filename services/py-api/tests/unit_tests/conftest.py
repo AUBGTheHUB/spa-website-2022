@@ -36,6 +36,7 @@ def db_manager_mock(db_client_session_mock: Mock) -> Mock:
     # We use AsyncMock, as the original AsyncIOMotorClient class has async methods
     db_manager.client = AsyncMock()
     db_manager.get_collection.return_value = AsyncMock()
+    db_manager.retry_db_operation = AsyncMock()
     db_manager.client.start_session.return_value = db_client_session_mock
     db_manager.async_ping_db = AsyncMock(return_value=None)
 
@@ -122,9 +123,11 @@ def participant_registration_service_mock() -> Mock:
 def mock_input_data() -> ParticipantRequestBody:
     return ParticipantRequestBody(name="Test User", email="test@example.com", team_name="Test Team", is_admin=True)
 
+
 @pytest.fixture
 def mock_input_data_random() -> ParticipantRequestBody:
     return ParticipantRequestBody(name="Test User", email="test@example.com", team_id=None, is_admin=False)
+
 
 @pytest.fixture
 def response_mock() -> MagicMock:
