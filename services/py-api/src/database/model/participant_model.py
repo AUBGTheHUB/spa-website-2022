@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Dict, Any, Optional
 
 from pydantic import EmailStr
@@ -16,6 +17,7 @@ class Participant(Base):
     is_admin: bool
     email_verified: bool = field(default=False)
     team_id: Optional[SerializableObjectId]
+    last_sent_email: Optional[datetime] = field(default=None)
 
     def dump_as_mongo_db_document(self) -> Dict[str, Any]:
         return {
@@ -25,6 +27,7 @@ class Participant(Base):
             "is_admin": self.is_admin,
             "email_verified": self.email_verified,
             "team_id": self.team_id,
+            "last_sent_email": self.last_sent_email,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
@@ -37,6 +40,7 @@ class Participant(Base):
             "is_admin": self.is_admin,
             "email_verified": self.email_verified,
             "team_id": str(self.team_id) if self.team_id else None,
+            "last_sent_email": self.last_sent_email.strftime("%Y-%m-%d %H:%M:%S") if self.last_sent_email else None,
             "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
         }

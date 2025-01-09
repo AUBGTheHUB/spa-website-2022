@@ -27,6 +27,24 @@ class ParticipantsRepository(CRUDRepository):
     async def fetch_all(self) -> Result:
         raise NotImplementedError()
 
+    async def fetch_by_email(
+        self, email: str, session: Optional[AsyncIOMotorClientSession] = None
+    ) -> Result[Participant, ParticipantNotFoundError | Exception]:
+        """
+        Fetches a participant which corresponds to the provided email
+        """
+        try:
+            LOG.debug("Fetching participant...", participant_email=email)
+            result = await self._collection.find_one(filter={"email": email})
+
+            if result:
+                return Ok(Participant(id=result["_id"], **result))
+
+            return Err(ParticipantNotFoundError())
+        except Exception as e:
+            LOG.exception("Participant fetching failed due to err {}".format(e))
+            return Err(e)
+
     async def update(
         self, obj_id: str, input_data: BaseModel, session: Optional[AsyncIOMotorClientSession] = None, **kwargs: Any
     ) -> Result:
