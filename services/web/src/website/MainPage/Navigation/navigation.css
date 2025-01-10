@@ -1,0 +1,91 @@
+/* Both Desktop and Mobile */
+.spacing {
+    height: 100px;
+    clear: both;
+}
+
+.nav-bar {
+    width: 100%;
+    background-color: rgb(7, 6, 77);
+    margin-bottom: 20px;
+    min-height: 15px;
+    clear: both;
+}
+
+.navigation {
+    position: fixed;
+    width: 100%;
+}
+
+/* Desktop Navigation Bar */
+.desktop-logo {
+    height: 70px;
+    margin: 15px auto;
+}
+
+.desktop-nav-item {
+    padding: 12px 10px;
+    font-size: 18px;
+}
+
+.desktop-nav-item a {
+    color: #fff;
+    text-align: center;
+}
+
+.desktop-nav-item a:hover {
+    color: white;
+    font-weight: bold;
+}
+
+.nav-section-right {
+    width: 50%;
+}
+
+.nav-section-left {
+    width: 50%;
+}
+
+.nav-items {
+    margin: 0 auto;
+}
+
+/* Mobile Navigation Menu */
+.mobile-menu {
+    background-color: rgb(7, 6, 77);
+    clear: both;
+    min-width: 50%;
+    text-align: center;
+    position: absolute;
+    right: 0px;
+    top: 90px;
+    padding-bottom: 20px;
+}
+
+.mobile-nav-item a {
+    color: white;
+}
+
+.mobile-nav-item a:hover {
+    color: white;
+    font-weight: bold;
+}
+
+.mobile-nav-item {
+    padding: 10px 20px;
+    font-size: 18pt;
+}
+
+.icon {
+    float: right;
+    text-align: right;
+    position: absolute;
+    right: 15px;
+    top: 25px;
+    height: 50px;
+}
+
+.mobile-logo {
+    height: 70px;
+    margin: 15px;
+}
