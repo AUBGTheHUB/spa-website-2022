@@ -2,7 +2,7 @@ from typing import Final, Optional, Any, Dict
 
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClientSession
-from pydantic import BaseModel
+from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 from result import Result, Err, Ok
 from structlog.stdlib import get_logger
@@ -27,7 +27,7 @@ class TeamsRepository(CRUDRepository):
         self,
         input_data: ParticipantRequestBody,
         session: Optional[AsyncIOMotorClientSession] = None,
-        **kwargs: Dict[str, Any]
+        **kwargs: Dict[str, Any],
     ) -> Result[Team, DuplicateTeamNameError | Exception]:
 
         if input_data.team_name is None:
@@ -56,11 +56,30 @@ class TeamsRepository(CRUDRepository):
     async def update(
         self,
         obj_id: str,
-        input_data: BaseModel,
+        updated_data: Dict[str, Any],
         session: Optional[AsyncIOMotorClientSession] = None,
-        **kwargs: Dict[str, Any]
-    ) -> Result:
-        raise NotImplementedError()
+        **kwargs: Dict[str, Any],
+    ) -> Result[Team, TeamNotFoundError | Exception]:
+        try:
+            LOG.debug(f"Updating team with ObjectId={obj_id}, by setting {updated_data}.")
+            result = await self._collection.find_one_and_update(
+                filter={"_id": ObjectId(obj_id)},
+                update={"$set": updated_data},
+                return_document=ReturnDocument.AFTER,
+                projection={"_id": 0},
+                session=session,
+            )
+
+            if not result:
+                LOG.exception(f"No updated teams because team with ObjectId={obj_id} was not found")
+                return Err(TeamNotFoundError())
+
+            LOG.debug(f"Successfully updated team with ObjectId={obj_id}")
+            return Ok(Team(id=obj_id, **result))
+
+        except Exception as e:
+            LOG.exception(f"Updating team with ObjectId={obj_id} failed due to err {e}")
+            return Err(e)
 
     async def delete(
         self, obj_id: str, session: Optional[AsyncIOMotorClientSession] = None
@@ -95,4 +114,9 @@ class TeamsRepository(CRUDRepository):
         """Returns the count of verified teams."""
         # Ignoring mypy type due to mypy err: 'Returning Any from function declared to return "int"  [no-any-return]'
         # which is not true
-        return await self._collection.count_documents({"is_verified": True})  # type: ignore
+        try:
+            count = await self._collection.count_documents({"is_verified": True})
+            return int(count)
+        except Exception as e:
+            LOG.exception(f"Failed to count verified teams: {e}")
+            return 0

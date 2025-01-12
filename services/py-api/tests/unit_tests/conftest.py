@@ -15,6 +15,7 @@ from src.database.transaction_manager import TransactionManager
 from src.server.schemas.request_schemas.schemas import ParticipantRequestBody
 from src.service.hackathon_service import HackathonService
 from src.service.participants_registration_service import ParticipantRegistrationService
+from src.service.participants_verification_service import ParticipantVerificationService
 
 
 @pytest.fixture
@@ -118,6 +119,17 @@ def participant_registration_service_mock() -> Mock:
     p_reg_service.register_admin_participant.return_value = AsyncMock()
 
     return p_reg_service
+
+
+@pytest.fixture
+def participants_verification_service_mock() -> Mock:
+    """This is a mock obj of ParticipantVerificationService. To change the return values of its methods use:
+    `p_reg_service.method_name.return_value=some_return_value`"""
+
+    p_ver_service = Mock(spec=ParticipantVerificationService)
+    p_ver_service.verify_admin_participant.return_value = AsyncMock()
+
+    return p_ver_service
 
 
 @pytest.fixture

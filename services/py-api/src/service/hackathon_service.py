@@ -15,6 +15,7 @@ from src.server.exception import (
     ParticipantNotFoundError,
     TeamNotFoundError,
 )
+from src.server.schemas.jwt_schemas.jwt_user_data_schema import JwtUserData
 from src.server.schemas.request_schemas.schemas import ParticipantRequestBody
 
 
@@ -69,6 +70,35 @@ class HackathonService:
 
         # As when first created, the random participant is not assigned to a team we return the team as None
         return Ok((result.ok_value, None))
+
+    async def verify_admin_participant_and_team_in_transaction(self, jwt_data: JwtUserData) -> Result[
+        Tuple[Participant, Team],
+        ParticipantNotFoundError | TeamNotFoundError | Exception,
+    ]:
+        return await self._tx_manager.with_transaction(self._verify_admin_participant_and_team_callback, jwt_data)
+
+    async def _verify_admin_participant_and_team_callback(
+        self,
+        jwt_data: JwtUserData,
+        session: Optional[AsyncIOMotorClientSession] = None,
+    ) -> Result[
+        Tuple[Participant, Team],
+        ParticipantNotFoundError | TeamNotFoundError | Exception,
+    ]:
+
+        result_admin = await self._participant_repo.update(
+            obj_id=jwt_data["sub"], updated_data={"email_verified": True}, session=session
+        )
+        if is_err(result_admin):
+            return result_admin
+
+        result_team = await self._team_repo.update(
+            obj_id=jwt_data["team_id"], updated_data={"is_verified": True}, session=session
+        )
+        if is_err(result_team):
+            return result_team
+
+        return Ok((result_admin.ok_value, result_team.ok_value))
 
     async def check_capacity_register_admin_participant_case(self) -> bool:
         """Calculate if there is enough capacity to register a new team. Capacity is measured in max number of verified

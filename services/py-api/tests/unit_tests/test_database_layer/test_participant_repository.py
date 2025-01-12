@@ -125,3 +125,41 @@ async def test_delete_participant_general_exception(
     assert isinstance(result.err_value, Exception)
     # Check that the error message is the one in the Exception
     assert str(result.err_value) == "Test error"
+
+
+@pytest.mark.asyncio
+async def test_update_participant_success(
+    db_manager_mock: Mock, mock_obj_id: str, repo: ParticipantsRepository
+) -> None:
+    db_manager_mock.get_collection.return_value.find_one_and_update = AsyncMock(
+        return_value={
+            "name": "testtest",
+            "email": "testtest@test.com",
+            "email_verified": True,
+            "is_admin": True,
+            "team_id": None,
+        }
+    )
+
+    result = await repo.update(mock_obj_id, {"email_verified": True, "name": "testtest"})
+
+    assert isinstance(result, Ok)
+    assert result.ok_value.id == mock_obj_id
+    assert result.ok_value.email_verified is True
+    assert result.ok_value.name == "testtest"
+    assert result.ok_value.email == "testtest@test.com"
+    assert result.ok_value.is_admin is True
+    assert result.ok_value.team_id is None
+
+
+@pytest.mark.asyncio
+async def test_update_participant_not_found(
+    db_manager_mock: Mock, mock_obj_id: str, repo: ParticipantsRepository
+) -> None:
+    # When a participant with the specified id is not found find_one_and_update returns None
+    db_manager_mock.get_collection.return_value.find_one_and_update = AsyncMock(return_value=None)
+
+    result = await repo.update(mock_obj_id, {"email_verified": True})
+
+    assert isinstance(result, Err)
+    assert isinstance(result.err_value, ParticipantNotFoundError)

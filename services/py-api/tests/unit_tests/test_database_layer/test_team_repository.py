@@ -107,3 +107,28 @@ async def test_delete_team_general_exception(db_manager_mock: Mock, mock_obj_id:
     assert isinstance(result.err_value, Exception)
     # Check that the error message is the one in the Exception
     assert str(result.err_value) == "Test error"
+
+
+@pytest.mark.asyncio
+async def test_update_team_success(db_manager_mock: Mock, mock_obj_id: str, repo: TeamsRepository) -> None:
+    db_manager_mock.get_collection.return_value.find_one_and_update = AsyncMock(
+        return_value={"name": "Test team", "is_verified": True}
+    )
+
+    result = await repo.update(mock_obj_id, {"is_verified": True})
+
+    assert isinstance(result, Ok)
+    assert result.ok_value.id == mock_obj_id
+    assert result.ok_value.is_verified is True
+    assert result.ok_value.name == "Test team"
+
+
+@pytest.mark.asyncio
+async def test_update_team_team_not_found(db_manager_mock: Mock, mock_obj_id: str, repo: TeamsRepository) -> None:
+    # When a team with the specified id is not found find_one_and_update returns none
+    db_manager_mock.get_collection.return_value.find_one_and_update = AsyncMock(return_value=None)
+
+    result = await repo.update(mock_obj_id, {"is_verified": True})
+
+    assert isinstance(result, Err)
+    assert isinstance(result.err_value, TeamNotFoundError)

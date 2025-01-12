@@ -44,7 +44,7 @@ class CRUDRepository(ABC):
     async def update(
         self,
         obj_id: str,
-        input_data: BaseModel,
+        updated_data: Dict[str, Any],
         session: Optional[AsyncIOMotorClientSession] = None,
         **kwargs: Dict[str, Any]
     ) -> Result:
