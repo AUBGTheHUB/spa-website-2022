@@ -15,6 +15,7 @@ from src.server.exception import (
     ParticipantNotFoundError,
     TeamNotFoundError,
 )
+from src.server.schemas.jwt_schemas.jwt_user_data_schema import JwtUserData
 from src.server.schemas.request_schemas.schemas import ParticipantRequestBody
 
 
@@ -63,6 +64,19 @@ class HackathonService:
     ) -> Result[Tuple[Participant, None], DuplicateEmailError | Exception]:
 
         result = await self._participant_repo.create(input_data)
+
+        if is_err(result):
+            return result
+
+        # As when first created, the random participant is not assigned to a team we return the team as None
+        return Ok((result.ok_value, None))
+
+    async def verify_random_participant(
+        self, jwt_data: JwtUserData
+    ) -> Result[Tuple[Participant, None], DuplicateEmailError | Exception]:
+
+        # Updates the random participant if it exists
+        result = await self._participant_repo.update(jwt_data["sub"], {"email_verified": True})
 
         if is_err(result):
             return result

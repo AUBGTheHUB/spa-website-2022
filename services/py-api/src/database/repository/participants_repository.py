@@ -2,7 +2,7 @@ from typing import Optional, Any, Dict
 
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClientSession
-from pydantic import BaseModel
+from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 from result import Result, Ok, Err
 from structlog.stdlib import get_logger
@@ -17,20 +17,58 @@ LOG = get_logger()
 
 
 class ParticipantsRepository(CRUDRepository):
-    # TODO: Implement the rest of the methods
     def __init__(self, db_manager: DatabaseManager, collection_name: str) -> None:
         self._collection = db_manager.get_collection(collection_name)
 
-    async def fetch_by_id(self, obj_id: str) -> Result:
-        raise NotImplementedError()
+    async def fetch_by_id(self, obj_id: str) -> Result[Participant, Exception]:
+        try:
+            LOG.debug("Fetching participant by ObjectId...", obj_id=obj_id)
+
+            # Query the database for the participant with the given object id
+            participant = await self._collection.find_one({"_id": ObjectId(obj_id)})
+
+            if participant is None:  # If no participant is found, return an Err
+                return Err(ParticipantNotFoundError())
+
+            return Ok(participant)
+
+        except Exception as e:
+            LOG.exception(f"Failed to fetch participant by ObjectId {obj_id} due to err {e}")
+            return Err(e)
 
     async def fetch_all(self) -> Result:
         raise NotImplementedError()
 
     async def update(
-        self, obj_id: str, input_data: BaseModel, session: Optional[AsyncIOMotorClientSession] = None, **kwargs: Any
-    ) -> Result:
-        raise NotImplementedError()
+        self,
+        obj_id: str,
+        updated_data: Dict[str, Any],
+        session: Optional[AsyncIOMotorClientSession] = None,
+        **kwargs: Dict[str, Any],
+    ) -> Result[Participant, ParticipantNotFoundError | Exception]:
+        try:
+
+            LOG.debug(f"Updating participant with ObjectId={obj_id}, by setting {updated_data}.")
+
+            # ReturnDocument.AFTER returns the updated document instead of the orignal document which is the
+            # default behaviour.
+            result = await self._collection.find_one_and_update(
+                filter={"_id": ObjectId(obj_id)},
+                update={"$set": updated_data},
+                projection={"_id": 0},
+                return_document=ReturnDocument.AFTER,
+                session=session,
+            )
+
+            # The result is None when the participant with the specified ObjectId is not found
+            if result:
+                return Ok(Participant(id=obj_id, **result))
+
+            return Err(ParticipantNotFoundError())
+
+        except Exception as e:
+            LOG.exception(f"Failed to update participant with id {obj_id} due to {e}")
+            return Err(e)
 
     async def delete(
         self, obj_id: str, session: Optional[AsyncIOMotorClientSession] = None
@@ -62,7 +100,7 @@ class ParticipantsRepository(CRUDRepository):
         self,
         input_data: ParticipantRequestBody,
         session: Optional[AsyncIOMotorClientSession] = None,
-        **kwargs: Dict[str, Any]
+        **kwargs: Dict[str, Any],
     ) -> Result[Participant, DuplicateEmailError | Exception]:
         try:
             participant = Participant(
@@ -86,4 +124,8 @@ class ParticipantsRepository(CRUDRepository):
         """Returns the count of verified participants who are not assigned to any team."""
         # Ignoring mypy type due to mypy err: 'Returning Any from function declared to return "int"  [no-any-return]'
         # which is not true
-        return await self._collection.count_documents({"email_verified": True, "team_id": None})  # type: ignore
+        try:
+            return await self._collection.count_documents({"email_verified": True, "team_id": None})  # type: ignore
+        except Exception as e:
+            LOG.exception(f"Failed to count verified random participants: {e}")
+            return 0
