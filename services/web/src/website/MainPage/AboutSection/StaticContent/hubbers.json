@@ -1,0 +1,192 @@
+[
+    {
+        "picture": "/sample.png",
+        "name": "John Doe",
+        "departments": [
+            "All",
+            "Development",
+            "PR",
+            "Logistics",
+            "Board"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Jane Smith",
+        "departments": [
+            "All",
+            "Marketing"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Michael Brown",
+        "departments": [
+            "All",
+            "PR",
+            "Logistics"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Emily Johnson",
+        "departments": [
+            "All",
+            "Board",
+            "Marketing",
+            "Design"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Chris Wilson",
+        "departments": [
+            "All",
+            "Logistics",
+            "Development"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Sarah Davis",
+        "departments": [
+            "All",
+            "PR",
+            "Marketing",
+            "Design"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "David Lee",
+        "departments": [
+            "All",
+            "Development",
+            "Logistics",
+            "Board"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Emma Moore",
+        "departments": [
+            "All",
+            "Board",
+            "PR"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Daniel Taylor",
+        "departments": [
+            "All",
+            "Design",
+            "Marketing"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Sophia White",
+        "departments": [
+            "All",
+            "PR",
+            "Development",
+            "Logistics"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "James Anderson",
+        "departments": [
+            "All",
+            "Marketing",
+            "Design",
+            "Board"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Olivia Martin",
+        "departments": [
+            "All",
+            "Development",
+            "PR"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "William Garcia",
+        "departments": [
+            "All",
+            "Logistics",
+            "Marketing"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Mia Thompson",
+        "departments": [
+            "All",
+            "Board",
+            "Design",
+            "PR"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Alexander Lopez",
+        "departments": [
+            "All",
+            "Marketing",
+            "Board"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Charlotte Harris",
+        "departments": [
+            "All",
+            "Development",
+            "Logistics"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Benjamin Clark",
+        "departments": [
+            "All",
+            "Design",
+            "Marketing",
+            "PR"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Amelia Lewis",
+        "departments": [
+            "All",
+            "Board",
+            "Logistics",
+            "Development"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Lucas Walker",
+        "departments": [
+            "All",
+            "PR",
+            "Design"
+        ]
+    },
+    {
+        "picture": "/sample.png",
+        "name": "Isabella Hall",
+        "departments": [
+            "All",
+            "Development",
+            "Board",
+            "Marketing"
+        ]
+    }
+]

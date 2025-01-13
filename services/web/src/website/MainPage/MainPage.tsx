@@ -1,5 +1,6 @@
 import IdentitySection from './AboutSection/components/IdentitySection.tsx';
 import PastEventSection from './AboutSection/components/PastEventSection.tsx';
+import MeetTheTeam from './AboutSection/components/MeetTheTeam.tsx'
 
 export const MainPage = () => {
     return (
@@ -8,6 +9,10 @@ export const MainPage = () => {
                 <IdentitySection />
                 <PastEventSection />
             </div>
+            <div className="mt-40 bg-gradient-to-b from-[#031e4a] to-[#063075] py-10">
+                <MeetTheTeam />
+            </div>
         </div>
     );
 };
+
