@@ -27,7 +27,7 @@ class TeamsRepository(CRUDRepository):
         self,
         input_data: ParticipantRequestBody,
         session: Optional[AsyncIOMotorClientSession] = None,
-        **kwargs: Dict[str, Any]
+        **kwargs: Dict[str, Any],
     ) -> Result[Team, DuplicateTeamNameError | Exception]:
 
         if input_data.team_name is None:
@@ -58,7 +58,7 @@ class TeamsRepository(CRUDRepository):
         obj_id: str,
         input_data: BaseModel,
         session: Optional[AsyncIOMotorClientSession] = None,
-        **kwargs: Dict[str, Any]
+        **kwargs: Dict[str, Any],
     ) -> Result:
         raise NotImplementedError()
 
@@ -96,3 +96,22 @@ class TeamsRepository(CRUDRepository):
         # Ignoring mypy type due to mypy err: 'Returning Any from function declared to return "int"  [no-any-return]'
         # which is not true
         return await self._collection.count_documents({"is_verified": True})  # type: ignore
+
+    async def fetch_by_team_name(self, team_name: str) -> Result[Team, TeamNotFoundError | Exception]:
+        """
+        Fetches a team by the team_name from the participant
+        """
+        try:
+            LOG.debug("Fetching team by name...", team_name=team_name)
+
+            # Query the database for the team with the given name
+            team = await self._collection.find_one({"name": team_name})
+
+            if team is None:  # If no team is found, return an Err
+                return Err(TeamNotFoundError())
+
+            return Ok(team)
+
+        except Exception as e:
+            LOG.exception(f"Failed to fetch team by name {team_name} due to err {e}")
+            return Err(e)

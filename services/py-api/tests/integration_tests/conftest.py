@@ -3,7 +3,7 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport, Response
 from structlog.stdlib import get_logger
-from typing import Callable, Dict, Any, List
+from typing import Callable, Dict, Any, List, Union
 from src.server.app_entrypoint import app
 from os import environ
 
@@ -61,24 +61,34 @@ async def clean_up_test_participant(async_client: AsyncClient, result_json: Dict
 # You can read more about that: https://docs.pytest.org/en/stable/how-to/fixtures.html#factories-as-fixtures
 # It uses the same philosophy for the teardown as it is suggested on the example of the docs above.
 # Learn more about fixture teardown here: https://docs.pytest.org/en/stable/how-to/fixtures.html#teardown-cleanup-aka-fixture-finalization
+import urllib.parse
+
 @pytest_asyncio.fixture
 async def create_test_participant(async_client: AsyncClient) -> Callable[..., Dict[str, Any]]:
 
     request_results = []
 
-    async def _create(participant_body: Dict[str, Any]) -> Response:
+    async def _create(participant_body: Dict[str, Any], jwt_token: str = None) -> Response:
 
         LOG.debug("Creating a test participant")
-        result = await async_client.post(PARTICIPANT_ENDPOINT_URL, json=participant_body)
+        
+        # Check if a JWT token is provided and modify the URL
+        url = PARTICIPANT_ENDPOINT_URL
+        
+        if jwt_token:
+            # Add the JWT token to the query parameters
+            url = f"{url}?jwt_token={urllib.parse.quote(jwt_token)}"
+        
+        # Send the request with the participant data and JWT token in the query string
+        result = await async_client.post(url, json=participant_body)
+        
         request_results.append(result)
         return result
 
     yield _create
 
-    # Perform clean-up. If we are dealing with an admin participant, we should clean both the participant and the team.
-    # Otherwise, deleting only the participant is sufficient.
+    # Clean-up after test
     for result in request_results:
-        # Status Code 201 -> Participant was sucessfully created
         if result.status_code == 201:
             LOG.debug("Cleaning up test participant")
             await clean_up_test_participant(async_client=async_client, result_json=result.json())
@@ -89,11 +99,12 @@ def generate_participant_request_body() -> Callable[..., Dict[str, Any]]:
     def create_participant_request_body_generator(
         name: str | None = "testtest",
         email: str | None = "testtest@test.com",
+        team_name: str | None = None,
         is_admin: bool | None = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
-        request_body = {"name": name, "email": email, "is_admin": is_admin, **kwargs}
+        request_body = {"name": name, "email": email,"team_name": team_name, "is_admin": is_admin, **kwargs}
         # A new dict without None values
         return {key: value for key, value in request_body.items() if value is not None}
 

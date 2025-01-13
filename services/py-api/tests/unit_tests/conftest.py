@@ -94,6 +94,7 @@ def hackathon_service_mock() -> Mock:
     hackathon_service.check_capacity_register_admin_participant_case = AsyncMock()
     hackathon_service.delete_participant = AsyncMock()
     hackathon_service.delete_team = AsyncMock()
+    hackathon_service.check_team_capacity = AsyncMock()
 
     return hackathon_service
 
@@ -116,6 +117,7 @@ def participant_registration_service_mock() -> Mock:
 
     p_reg_service = Mock(spec=ParticipantRegistrationService)
     p_reg_service.register_admin_participant.return_value = AsyncMock()
+    p_reg_service.register_invite_link_participant.return_value = AsyncMock()
 
     return p_reg_service
 
@@ -134,6 +136,9 @@ def mock_obj_id() -> str:
 def mock_input_data_random() -> ParticipantRequestBody:
     return ParticipantRequestBody(name="Test User", email="test@example.com", team_id=None, is_admin=False)
 
+@pytest.fixture
+def mock_input_data_link() -> ParticipantRequestBody:
+    return ParticipantRequestBody(name="Test User", email="test@example.com", team_name="Test Team", is_admin=False)
 
 @pytest.fixture
 def response_mock() -> MagicMock:

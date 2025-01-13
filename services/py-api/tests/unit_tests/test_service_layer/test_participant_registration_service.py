@@ -6,9 +6,10 @@ from result import Ok, Err
 
 from src.database.model.participant_model import Participant
 from src.database.model.team_model import Team
-from src.server.exception import DuplicateTeamNameError, DuplicateEmailError, HackathonCapacityExceededError
+from src.server.exception import DuplicateTeamNameError, DuplicateEmailError, HackathonCapacityExceededError, TeamCapacityExceededError
 from src.server.schemas.request_schemas.schemas import ParticipantRequestBody
 from src.service.participants_registration_service import ParticipantRegistrationService
+from src.utils import JwtUtility
 
 
 @pytest.fixture
@@ -294,3 +295,164 @@ async def test_register_random_participant_order_of_operations(
     # Check that the result is an `Err` of type HackathonCapacityExceededError
     assert isinstance(result, Err)
     assert isinstance(result.err_value, HackathonCapacityExceededError)
+
+@pytest.mark.asyncio
+async def test_register_invite_link_participant_success(
+    p_reg_service: ParticipantRegistrationService,
+    hackathon_service_mock: Mock,
+    mock_input_data_link: ParticipantRequestBody,
+) -> None:
+    # Mock a valid decoded JWT token
+    valid_decoded_token = {
+        "sub": "user123",
+        "is_admin": False,
+        "team_name": mock_input_data_link.team_name,
+        "team_id": "63e6b3ecf2a1234abcd56789",
+        "is_invite": True,
+    }
+
+    # Mock the JwtUtility to decode the token successfully
+    JwtUtility.decode_data = Mock(return_value=Ok(valid_decoded_token))
+
+    # Mock successful creation of the participant via `create_invite_link_participant`
+    hackathon_service_mock.create_invite_link_participant.return_value = Ok(
+        Participant(
+            name=mock_input_data_link.name,
+            email=mock_input_data_link.email,
+            is_admin=False,
+            team_id=valid_decoded_token["team_id"],
+        )
+    )
+
+    # Call the function under test
+    result = await p_reg_service.register_invite_link_participant(
+        input_data=mock_input_data_link, jwt_token="valid.jwt.token"
+    )
+
+    # Validate the result
+    assert isinstance(result, Ok)
+    participant = result.ok_value
+
+    assert isinstance(participant, Participant)
+    assert participant.name == mock_input_data_link.name
+    assert participant.email == mock_input_data_link.email
+    assert not participant.is_admin
+    assert str(participant.team_id) == valid_decoded_token["team_id"]
+
+@pytest.mark.asyncio
+async def test_register_invite_link_participant_missing_token_error(
+    p_reg_service: ParticipantRegistrationService,
+    mock_input_data_link: ParticipantRequestBody,
+) -> None:
+    # Call the function with `jwt_token` as None
+    result = await p_reg_service.register_invite_link_participant(
+        input_data=mock_input_data_link, jwt_token=None
+    )
+
+    # Validate the result
+    assert isinstance(result, Err)
+    assert result.err_value == "JWT token is missing"
+
+@pytest.mark.asyncio
+async def test_register_invite_link_participant_jwt_decoding_error(
+    p_reg_service: ParticipantRegistrationService,
+    mock_input_data_link: ParticipantRequestBody,
+) -> None:
+    # Mock JwtUtility to return a decoding error
+    JwtUtility.decode_data = Mock(return_value=Err("Invalid JWT token"))
+
+    # Call the function
+    result = await p_reg_service.register_invite_link_participant(
+        input_data=mock_input_data_link, jwt_token="invalid.jwt.token"
+    )
+
+    # Validate the result
+    assert isinstance(result, Err)
+    assert result.err_value == "Invalid JWT token"
+
+@pytest.mark.asyncio
+async def test_register_invite_link_participant_team_name_mismatch_error(
+    p_reg_service: ParticipantRegistrationService,
+    mock_input_data_link: ParticipantRequestBody,
+) -> None:
+    # Mock a decoded token with a mismatched `team_name`
+    mismatched_token = {
+        "sub": "user123",
+        "is_admin": False,
+        "team_name": "Different Team",
+        "team_id": "63e6b3ecf2a1234abcd56789",
+        "is_invite": True,
+    }
+
+    # Mock JwtUtility to decode the token successfully
+    JwtUtility.decode_data = Mock(return_value=Ok(mismatched_token))
+
+    # Call the function
+    result = await p_reg_service.register_invite_link_participant(
+        input_data=mock_input_data_link, jwt_token="valid.jwt.token"
+    )
+
+    # Validate the result
+    assert isinstance(result, Err)
+    assert result.err_value == "There is an issue with the provided team name"
+
+@pytest.mark.asyncio
+async def test_register_invite_link_participant_duplicate_email_error(
+    p_reg_service: ParticipantRegistrationService,
+    hackathon_service_mock: Mock,
+    mock_input_data_link: ParticipantRequestBody,
+) -> None:
+    # Mock a valid decoded JWT token
+    valid_decoded_token = {
+        "sub": "user123",
+        "is_admin": False,
+        "team_name": mock_input_data_link.team_name,
+        "team_id": "63e6b3ecf2a1234abcd56789",
+        "is_invite": True,
+    }
+
+    # Mock JwtUtility to decode the token successfully
+    JwtUtility.decode_data = Mock(return_value=Ok(valid_decoded_token))
+
+    # Mock `create_invite_link_participant` to return an `Err` with an instance of `DuplicateEmailError`
+    hackathon_service_mock.create_invite_link_participant.return_value = Err(DuplicateEmailError(mock_input_data_link.email))
+
+    # Call the function
+    result = await p_reg_service.register_invite_link_participant(
+        input_data=mock_input_data_link, jwt_token="valid.jwt.token"
+    )
+
+    # Validate the result
+    assert isinstance(result, Err)
+    assert isinstance(result.err_value, DuplicateEmailError)
+    assert str(result.err_value) == mock_input_data_link.email
+
+@pytest.mark.asyncio
+async def test_register_invite_link_participant_team_capacity_exceeded_error(
+    p_reg_service: ParticipantRegistrationService,
+    hackathon_service_mock: Mock,
+    mock_input_data_link: ParticipantRequestBody,
+) -> None:
+    # Mock a valid decoded JWT token
+    valid_decoded_token = {
+        "sub": "user123",
+        "is_admin": False,
+        "team_name": mock_input_data_link.team_name,
+        "team_id": "63e6b3ecf2a1234abcd56789",
+        "is_invite": True,
+    }
+
+    # Mock JwtUtility to decode the token successfully
+    JwtUtility.decode_data = Mock(return_value=Ok(valid_decoded_token))
+
+    # Mock `create_invite_link_participant` to return an `Err` with an instance of `TeamCapacityExceededError`
+    hackathon_service_mock.create_invite_link_participant.return_value = Err(TeamCapacityExceededError())
+
+    # Call the function
+    result = await p_reg_service.register_invite_link_participant(
+        input_data=mock_input_data_link, jwt_token="valid.jwt.token"
+    )
+
+    # Validate the result
+    assert isinstance(result, Err)
+    assert isinstance(result.err_value, TeamCapacityExceededError)  # Ensure it's the correct error type

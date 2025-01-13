@@ -1,4 +1,4 @@
-from typing import Optional, Any, Dict
+from typing import Dict, Optional, Any, Union, override
 
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClientSession
@@ -12,6 +12,7 @@ from src.database.model.participant_model import Participant
 from src.database.repository.base_repository import CRUDRepository
 from src.server.exception import DuplicateEmailError, ParticipantNotFoundError
 from src.server.schemas.request_schemas.schemas import ParticipantRequestBody
+from src.database.model.base_model import SerializableObjectId
 
 LOG = get_logger()
 
@@ -58,10 +59,13 @@ class ParticipantsRepository(CRUDRepository):
             LOG.exception("Participant deletion failed due to err {}".format(e))
             return Err(e)
 
-    async def create(
+    @override
+    async def create(  # type: ignore[override]
         self,
         input_data: ParticipantRequestBody,
         session: Optional[AsyncIOMotorClientSession] = None,
+        email_verified: bool = False,
+        team_id: Union[SerializableObjectId, None] = None,
         **kwargs: Dict[str, Any]
     ) -> Result[Participant, DuplicateEmailError | Exception]:
         try:
@@ -70,7 +74,8 @@ class ParticipantsRepository(CRUDRepository):
                 email=input_data.email,
                 is_admin=input_data.is_admin,
                 # If the team_id is passed as a kwarg the participant will be inserted in the given team
-                team_id=kwargs.get("team_id"),
+                team_id=team_id,
+                email_verified=email_verified,
             )
             LOG.debug("Inserting participant...", participant=participant.dump_as_json())
             await self._collection.insert_one(document=participant.dump_as_mongo_db_document(), session=session)
@@ -87,3 +92,7 @@ class ParticipantsRepository(CRUDRepository):
         # Ignoring mypy type due to mypy err: 'Returning Any from function declared to return "int"  [no-any-return]'
         # which is not true
         return await self._collection.count_documents({"email_verified": True, "team_id": None})  # type: ignore
+
+    async def get_number_registered_teammates(self, team_id: str) -> int:
+        """Returns the count of registered participants already in the team."""
+        return await self._collection.count_documents({"team_id": ObjectId(team_id)})  # type: ignore

@@ -9,19 +9,29 @@ sufficient_expiration_time = (datetime.now(tz=timezone.utc) + timedelta(seconds=
 instant_expiration_time = (datetime.now(tz=timezone.utc)).timestamp()
 
 CORRECT_TEST_PAYLOAD = JwtUserData(
-    sub="alksdjflksd987fsidjf98sduf", is_admin=True, team_id="slkdjflkasjdflkjsdlkj", exp=sufficient_expiration_time
+    sub="alksdjflksd987fsidjf98sduf",
+    is_admin=True,
+    team_id="slkdjflkasjdflkjsdlkj",
+    team_name="asdkjlfksj",
+    is_invite=False,
+    exp=sufficient_expiration_time,
 )
 
 MISSING_KEY_TEST_PAYLOAD = JwtUserData(  # We need it only for testing purposes | mypy complains
-    sub="alksdjflksd987fsidjf98sduf", is_admin=True, team_id="slkdjflkasjdflkjsdlkj"  # type: ignore[typeddict-item]
+    sub="alksdjflksd987fsidjf98sduf", is_admin=True, team_id="slkdjflkasjdflkjsdlkj", team_name="asdkjlfksj", is_invite=False  # type: ignore
 )
 
 ADDITIONAL_KEY_TEST_PAYLOAD = JwtUserData(
-    sub="alksdjflksd987fsidjf98sduf", is_admin=True, team_id="slkdjflkasjdflkjsdlkj", exp=sufficient_expiration_time, name="abcdefgji"  # type: ignore[typeddict-unknown-key]
+    sub="alksdjflksd987fsidjf98sduf", is_admin=True, team_id="slkdjflkasjdflkjsdlkj", team_name="asdkjlfksj", is_invite=False, exp=sufficient_expiration_time, name="abcdefgji"  # type: ignore
 )
 
 EXPIRED_TEST_PAYLOAD = JwtUserData(
-    sub="alksdjflksd987fsidjf98sduf", is_admin=True, team_id="slkdjflkasjdflkjsdlkj", exp=instant_expiration_time
+    sub="alksdjflksd987fsidjf98sduf",
+    is_admin=True,
+    team_id="slkdjflkasjdflkjsdlkj",
+    team_name="asdkjlfksj",
+    is_invite=False,
+    exp=instant_expiration_time,
 )
 
 

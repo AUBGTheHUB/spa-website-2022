@@ -1,3 +1,4 @@
+from typing import Union
 from fastapi import APIRouter, Depends
 from src.server.handlers.hackathon_handlers import HackathonManagementHandlers
 from starlette.responses import Response
@@ -39,9 +40,12 @@ def _h_handler(
     "", status_code=201, responses={201: {"model": ParticipantRegisteredResponse}, 409: {"model": ErrResponse}}
 )
 async def create_participant(
-    response: Response, input_data: ParticipantRequestBody, handler: ParticipantHandlers = Depends(_p_handler)
+    response: Response,
+    input_data: ParticipantRequestBody,
+    jwt_token: Union[str, None] = None,
+    handler: ParticipantHandlers = Depends(_p_handler),
 ) -> ParticipantRegisteredResponse | ErrResponse:
-    return await handler.create_participant(response, input_data)
+    return await handler.create_participant(response, input_data, jwt_token)
 
 
 @participants_router.delete(

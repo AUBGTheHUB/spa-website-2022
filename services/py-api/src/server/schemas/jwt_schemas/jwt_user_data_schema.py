@@ -15,5 +15,7 @@ class BaseTypedDict(TypedDict):
 class JwtUserData(BaseTypedDict):
     sub: str
     is_admin: bool
+    team_name: str
     team_id: str
-    exp: float
+    is_invite: bool
+    exp: int
