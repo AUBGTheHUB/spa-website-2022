@@ -15,27 +15,35 @@ check in their website.
 */
 
 type PropType = {
-    slides: React.ReactNode[];
+    slides: React.ReactNode[] | React.ReactNode[][];
     options?: EmblaOptionsType;
+    type:string;
 };
 
 const EmblaCarousel: React.FC<PropType> = (props) => {
-    const { slides, options } = props;
+    const { slides, options, type } = props;
     const [emblaRef, emblaApi] = useEmblaCarousel(options);
-
+    const emblaClass="embla "+type;
     const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(emblaApi);
 
     const { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick } = usePrevNextButtons(emblaApi);
-
     return (
-        <section className="embla">
+        <section className={emblaClass}>
             <div className="embla__viewport" ref={emblaRef}>
                 <div className="embla__container">
-                    {slides.map((slide, index) => (
-                        <div className="embla__slide" key={index}>
-                            {slide}
-                        </div>
-                    ))}
+                    {type == 'team' && Array.isArray(slides[0]) &&
+                        (slides as React.ReactNode[][]).map((slide: React.ReactNode[], index) => (
+                            <div className="embla__slide" key={index}>
+                                <div className="embla__slide__inner">{slide[0]}</div>
+                                <div className="embla__slide__inner">{slide[1]}</div>
+                            </div>
+                        ))}
+                    {type == 'events' &&
+                        slides.map((slide, index) => (
+                            <div className="embla__slide" key={index}>
+                                {slide}
+                            </div>
+                        ))}
                 </div>
             </div>
 

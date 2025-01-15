@@ -7,7 +7,7 @@ export default {
         extend: {
             fontFamily: {
                 mont: ['Montserrat', 'serif'],
-                hank: ['Hanken Grotesk', 'serif']
+                hank: ['Hanken Grotesk', 'serif'],
             },
             borderRadius: {
                 lg: 'var(--radius)',
